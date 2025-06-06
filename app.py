@@ -2,7 +2,7 @@ import streamlit as st
 import whisper
 import tempfile
 import os
-import ffmpeg
+import json
 
 # Load Whisper model once
 @st.cache_resource
@@ -29,6 +29,23 @@ if uploaded_file is not None:
 
     st.subheader("📝 Transcribed Text")
     st.write(result["text"])
+
+    # Create a JSON object from the result
+    json_data = {
+        "transcription": result["text"]
+    }
+
+    # Convert JSON object to string and encode to bytes
+    json_str = json.dumps(json_data, indent=4)
+    json_bytes = json_str.encode('utf-8')
+
+    # Download button
+    st.download_button(
+        label="⬇️ Download Transcription as JSON",
+        data=json_bytes,
+        file_name="transcription.json",
+        mime="application/json"
+    )
 
     # Optional: Delete temp file
     os.remove(temp_path)
