@@ -25,18 +25,13 @@ if uploaded_file is not None:
 
     st.audio(tmp_wav_path, format="audio/wav")
 
-    # Load Whisper model
     model = whisper.load_model("base")
 
-    # Translate to English (auto-detect language and translate)
     result = model.transcribe(tmp_wav_path, task="translate")
 
-    # For demo: Mock speaker segmentation by splitting text roughly
-    # Split transcription text into chunks (fake speaker turns)
     text = result["text"].strip()
     sentences = text.split(". ")
 
-    # Assign speakers alternately: client, speaker, client, speaker...
     speakers = ["client", "speaker"]
     transcription_json = []
     for i, sentence in enumerate(sentences):
@@ -46,18 +41,14 @@ if uploaded_file is not None:
                 "text": sentence.strip()
             })
 
-    # Show transcription JSON nicely
     st.header("Transcription JSON")
     st.json(transcription_json)
 
-    # Save JSON to file
     json_filename = save_json(transcription_json)
 
-    # Provide download link
     with open(json_filename, "rb") as f:
         st.download_button("Download Transcription JSON", f, file_name=json_filename, mime="application/json")
 
-    # Optional: remove temp files
     try:
         os.remove(tmp_mp3_path)
         os.remove(tmp_wav_path)
