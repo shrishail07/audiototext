@@ -1,4 +1,3 @@
-streamlit
-git+https://github.com/openai/whisper.git@main
-pydub
-ffmpeg-python
+streamlit==1.32.2
+faster-whisper==0.10.0
+ffmpeg-python==0.2.0
