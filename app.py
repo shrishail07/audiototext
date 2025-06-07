@@ -5,7 +5,7 @@ import tempfile
 import json
 import os
 
-st.title("English Speech-to-Text with Hindi Translation & Speaker Labels")
+st.title("Speech-to-Text (English + Hindi Translation)")
 
 uploaded_file = st.file_uploader("Upload MP3 audio file", type=["mp3"])
 
