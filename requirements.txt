@@ -1,5 +1,5 @@
 streamlit
 openai-whisper
-ffmpeg-python
-torch  # Required for whisper
 pydub
+ffmpeg-python
+torch
