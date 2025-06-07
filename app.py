@@ -27,7 +27,7 @@ if uploaded_file is not None:
 
     model = whisper.load_model("base")
 
-    # 'translate' task converts Hindi to English text automatically
+    # Translate Hindi+English speech into English text automatically
     result = model.transcribe(tmp_wav_path, task="translate")
 
     text = result["text"].strip()
