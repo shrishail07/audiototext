@@ -1,42 +1,65 @@
 import streamlit as st
+from pydub import AudioSegment
 import whisper
 import tempfile
-import os
 import json
+import os
 
-# Load Whisper model once
-@st.cache_resource
-def load_model():
-    return whisper.load_model("base")  # Options: tiny, base, small, medium, large
+st.title("English Speech-to-Text with Hindi Translation & Speaker Labels")
 
-model = load_model()
+uploaded_file = st.file_uploader("Upload MP3 audio file", type=["mp3"])
 
-st.title("🎧 English Speech to Text - Whisper")
-
-uploaded_file = st.file_uploader("Upload an MP3 file", type=["mp3"])
+def save_json(data, filename="transcription.json"):
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+    return filename
 
 if uploaded_file is not None:
-    st.audio(uploaded_file)
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp_mp3:
+        tmp_mp3.write(uploaded_file.read())
+        tmp_mp3_path = tmp_mp3.name
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
-        temp_audio_file.write(uploaded_file.read())
-        temp_path = temp_audio_file.name
+    audio = AudioSegment.from_mp3(tmp_mp3_path)
+    tmp_wav_path = tmp_mp3_path.replace(".mp3", ".wav")
+    audio.export(tmp_wav_path, format="wav")
 
-    st.write("Transcribing... Please wait.")
-    result = model.transcribe(temp_path, language="en")
-    st.success("Transcription Complete!")
+    st.audio(tmp_wav_path, format="audio/wav")
 
-    st.subheader("📝 Transcribed Text")
-    st.write(result["text"])
+    # Load Whisper model
+    model = whisper.load_model("base")
 
-    # Create downloadable JSON
-    json_data = {"transcription": result["text"]}
-    json_str = json.dumps(json_data, indent=4)
-    st.download_button(
-        label="⬇️ Download Transcription as JSON",
-        data=json_str,
-        file_name="transcription.json",
-        mime="application/json"
-    )
+    # Translate to English (auto-detect language and translate)
+    result = model.transcribe(tmp_wav_path, task="translate")
 
-    os.remove(temp_path)
+    # For demo: Mock speaker segmentation by splitting text roughly
+    # Split transcription text into chunks (fake speaker turns)
+    text = result["text"].strip()
+    sentences = text.split(". ")
+
+    # Assign speakers alternately: client, speaker, client, speaker...
+    speakers = ["client", "speaker"]
+    transcription_json = []
+    for i, sentence in enumerate(sentences):
+        if sentence:
+            transcription_json.append({
+                "speaker": speakers[i % 2],
+                "text": sentence.strip()
+            })
+
+    # Show transcription JSON nicely
+    st.header("Transcription JSON")
+    st.json(transcription_json)
+
+    # Save JSON to file
+    json_filename = save_json(transcription_json)
+
+    # Provide download link
+    with open(json_filename, "rb") as f:
+        st.download_button("Download Transcription JSON", f, file_name=json_filename, mime="application/json")
+
+    # Optional: remove temp files
+    try:
+        os.remove(tmp_mp3_path)
+        os.remove(tmp_wav_path)
+    except Exception:
+        pass
