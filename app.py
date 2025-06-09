@@ -3,15 +3,34 @@ import tempfile
 import streamlit as st
 from pydub import AudioSegment
 import speech_recognition as sr
-import ffmpeg
 import time
 
-# Set page config
+# Configure the page
 st.set_page_config(
     page_title="Audio to Text Extractor",
     page_icon="🎤",
     layout="wide"
 )
+
+# Function to check and install ffmpeg
+def check_ffmpeg():
+    try:
+        # Try to use ffmpeg
+        AudioSegment.converter = "ffmpeg"
+        test_audio = AudioSegment.silent(duration=1000)
+        test_audio.export(os.devnull, format="wav")
+    except:
+        st.error("""
+        FFmpeg is not installed correctly. Please install it:
+        
+        - On Ubuntu/Debian: `sudo apt-get install ffmpeg`
+        - On MacOS: `brew install ffmpeg`
+        - On Windows: Download from https://ffmpeg.org/download.html
+        
+        Then restart the app.
+        """)
+        return False
+    return True
 
 # Function to convert MP3 to WAV
 def convert_mp3_to_wav(mp3_file_path, wav_file_path):
@@ -23,19 +42,17 @@ def convert_mp3_to_wav(mp3_file_path, wav_file_path):
         st.error(f"Error converting MP3 to WAV: {str(e)}")
         return False
 
-# Function to process long audio files by splitting them
+# Function to process long audio files
 def process_long_audio(audio_file_path, chunk_length_ms=30000):
     recognizer = sr.Recognizer()
     full_text = ""
     
     # Load the audio file
     audio = AudioSegment.from_wav(audio_file_path)
-    
-    # Calculate total duration and chunks
     duration_ms = len(audio)
     total_chunks = (duration_ms // chunk_length_ms) + 1
     
-    # Process each chunk
+    # Progress tracking
     progress_bar = st.progress(0)
     status_text = st.empty()
     
@@ -71,10 +88,13 @@ def process_long_audio(audio_file_path, chunk_length_ms=30000):
     
     return full_text.strip()
 
-# Main app function
 def main():
     st.title("🎤 Unlimited Audio to Text Extractor")
-    st.markdown("Upload an MP3 file or provide a YouTube URL to extract text from audio")
+    st.markdown("Upload an MP3 file to extract text from audio")
+    
+    # Check for ffmpeg
+    if not check_ffmpeg():
+        return
     
     # Initialize session state
     if 'extracted_text' not in st.session_state:
