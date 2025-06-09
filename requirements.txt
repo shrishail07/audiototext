@@ -1,4 +1,4 @@
-streamlit
+streamlit==1.32.2
 pydub
-openai-whisper
-ffmpeg
+openai-whisper==20231117
+ffmpeg-python
