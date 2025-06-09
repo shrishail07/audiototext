@@ -1,4 +1,4 @@
 streamlit
 pydub
 openai-whisper
-ffmpeg-python
+ffmpeg
