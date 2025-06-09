@@ -1,4 +1,5 @@
-streamlit==1.32.2
-pydub
-openai-whisper==20231117
-ffmpeg-python
+streamlit==1.33.0
+pydub==0.25.1
+speechrecognition==3.10.0
+ffmpeg-python==0.2.0
+pytube==15.0.0
